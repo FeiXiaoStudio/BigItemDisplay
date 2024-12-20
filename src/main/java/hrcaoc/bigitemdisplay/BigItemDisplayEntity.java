@@ -1,11 +1,12 @@
 package hrcaoc.bigitemdisplay;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.block.AbstractRedstoneGateBlock;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityDimensions;
-import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.MovementType;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
@@ -19,12 +20,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.map.MapState;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
 import net.minecraft.registry.tag.DamageTypeTags;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.*;
@@ -35,31 +31,19 @@ import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-import java.util.OptionalInt;
-
-public class BigItemDisplayEntity extends AbstractDecorationEntity {
+public class BigItemDisplayEntity extends ItemFrameEntity {
     private static final Logger BIG_ITEM_DISPLAY_LOGGER = LogUtils.getLogger();
     private static final TrackedData<ItemStack> ITEM_STACK = DataTracker.registerData(BigItemDisplayEntity.class, TrackedDataHandlerRegistry.ITEM_STACK);
     private static final TrackedData<Integer> ROTATION = DataTracker.registerData(BigItemDisplayEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    public static final int ROTATION_CHOICES = 12;
 
-    public BigItemDisplayEntity(EntityType<? extends AbstractDecorationEntity> entityType, World world) {
+    public BigItemDisplayEntity(EntityType<? extends ItemFrameEntity> entityType, World world) {
         super(entityType, world);
     }
 
     public BigItemDisplayEntity(World world, BlockPos pos, Direction facing) {
-        super(CustomEntityType.BIG_ITEM_DISPLAY, world, pos);
+        super(CustomEntityType.BIG_ITEM_DISPLAY, world, pos, facing);
         this.setFacing(facing);
-    }
-
-    @Override
-    protected void initDataTracker() {
-        this.getDataTracker().startTracking(ITEM_STACK, ItemStack.EMPTY);
-        this.getDataTracker().startTracking(ROTATION, 0);
-    }
-
-    @Override
-    protected float getEyeHeight(EntityPose pose, EntityDimensions dimensions) {
-        return 0.0F;
     }
 
     @Override
@@ -76,7 +60,7 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
 
         this.prevPitch = this.getPitch();
         this.prevYaw = this.getYaw();
-        this.updateAttachmentPosition();
+        this.updateAttachmentPosition(); // This method is modified in this class
     }
 
     @Override
@@ -110,29 +94,43 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
     }
 
     @Override
-    public void kill() {
-        this.removeFromFrame(this.getHeldItemStack());
-        super.kill();
+    public boolean canStayAttached() {
+        if (!this.getWorld().isSpaceEmpty(this)) {
+            return false;
+        } else {
+            BlockState blockState = this.getWorld().getBlockState(this.attachmentPos.offset(this.facing.getOpposite()));
+            return (blockState.isSolid() || this.facing.getAxis().isHorizontal() && AbstractRedstoneGateBlock.isRedstoneGate(blockState)) && this.getWorld().getOtherEntities(this, this.getBoundingBox(), PREDICATE).isEmpty();
+        }
     }
 
-    public SoundEvent getPlaceSound() {
-        return SoundEvents.ENTITY_ITEM_FRAME_PLACE;
+    /* Didn't copy this from PaintingEntity due to performance concerns
+    @Override
+	public void tick() {
+		if (!this.getWorld().isClient) {
+			this.attemptTickInVoid();
+			if (this.obstructionCheckCounter++ == 100) {
+				this.obstructionCheckCounter = 0;
+				if (!this.isRemoved() && !this.canStayAttached()) {
+					this.discard();
+					this.onBreak(null);
+				}
+			}
+		}
+	} */
+
+    @Override
+    public void move(MovementType movementType, Vec3d movement) {
+        ((AbstractDecorationEntity) this).move(movementType, movement);
     }
 
-    public SoundEvent getBreakSound() {
-        return SoundEvents.ENTITY_ITEM_FRAME_BREAK;
+    @Override
+    public void addVelocity(double deltaX, double deltaY, double deltaZ) {
+        ((AbstractDecorationEntity) this).addVelocity(deltaX, deltaY, deltaZ);
     }
 
-    public SoundEvent getAddItemSound() {
-        return SoundEvents.ENTITY_ITEM_FRAME_ADD_ITEM;
-    }
-
-    public SoundEvent getRemoveItemSound() {
-        return SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM;
-    }
-
-    public SoundEvent getRotateItemSound() {
-        return SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM;
+    @Override
+    public boolean shouldRender(double distance) {
+        return ((Entity) this).shouldRender(distance);
     }
 
     @Override
@@ -146,45 +144,40 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
     }
 
     @Override
-    public void onPlace() {
-        this.playSound(this.getPlaceSound(), 1.0F, 1.0F);
-    }
-
-    @Override
     public void onBreak(@Nullable Entity entity) {
         this.playSound(this.getBreakSound(), 1.0F, 1.0F);
-        this.dropHeldStack(entity, true);
+        this.dropHeldStack(entity, true); // This method is modified in this class
         this.emitGameEvent(GameEvent.BLOCK_CHANGE, entity);
     }
 
     @Override
     public boolean damage(DamageSource source, float amount) {
-        /* if (this.fixed) {
-            return !source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY) && !source.isSourceCreativePlayer() ? false : super.damage(source, amount);
-        } else */ if (this.isInvulnerableTo(source)) {
+        if (this.isInvulnerableTo(source)) {
             return false;
         } else if (!source.isIn(DamageTypeTags.IS_EXPLOSION) && !this.getHeldItemStack().isEmpty()) {
             if (!this.getWorld().isClient) {
-                this.dropHeldStack(source.getAttacker(), false);
+                this.dropHeldStack(source.getAttacker(), false); // This method is modified in this class
                 this.emitGameEvent(GameEvent.BLOCK_CHANGE, source.getAttacker());
                 this.playSound(this.getRemoveItemSound(), 1.0F, 1.0F);
             }
             return true;
         } else {
-            return super.damage(source, amount);
+            return ((AbstractDecorationEntity) this).damage(source, amount);
         }
     }
 
+    @Override
     public void setHeldItemStack(ItemStack stack) {
         this.setHeldItemStack(stack, true);
     }
 
+    @Override
     public void setHeldItemStack(ItemStack value, boolean update) {
         if (!value.isEmpty()) {
             value = value.copyWithCount(1);
         }
 
-        this.setAsStackHolder(value);
+        this.setAsStackHolder(value); // This method is modified in this class
         this.getDataTracker().set(ITEM_STACK, value);
         if (!value.isEmpty()) {
             this.playSound(this.getAddItemSound(), 1.0F, 1.0F);
@@ -195,61 +188,38 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
         }
     }
 
-    public ItemStack getHeldItemStack() {
-        return this.getDataTracker().get(ITEM_STACK);
-    }
-
+    // Copied private method from super class and modified that
     private void dropHeldStack(@Nullable Entity entity, boolean alwaysDrop) {
-        // if (!this.fixed) {
-            ItemStack itemStack = this.getHeldItemStack();
-            this.setHeldItemStack(ItemStack.EMPTY);
-            if (!this.getWorld().getGameRules().getBoolean(GameRules.DO_ENTITY_DROPS)) {
-                if (entity == null) {
-                    this.removeFromFrame(itemStack);
-                }
-            } else {
-                if (entity instanceof PlayerEntity playerEntity && playerEntity.getAbilities().creativeMode) {
-                    this.removeFromFrame(itemStack);
-                    return;
-                }
-
-                if (alwaysDrop) {
-                    this.dropStack(this.getAsItemStack());
-                }
-
-                if (!itemStack.isEmpty()) {
-                    itemStack = itemStack.copy();
-                    this.removeFromFrame(itemStack);
-                    // if (this.random.nextFloat() < this.itemDropChance) {
-                        this.dropStack(itemStack);
-                    // }
-                }
+        ItemStack itemStack = this.getHeldItemStack();
+        this.setHeldItemStack(ItemStack.EMPTY);
+        if (!this.getWorld().getGameRules().getBoolean(GameRules.DO_ENTITY_DROPS)) {
+            if (entity == null) {
+                this.removeFromFrame(itemStack);
             }
-        // }
+        } else {
+            if (entity instanceof PlayerEntity playerEntity && playerEntity.getAbilities().creativeMode) {
+                this.removeFromFrame(itemStack);
+                return;
+            }
+
+            if (alwaysDrop) {
+                this.dropStack(this.getAsItemStack());
+            }
+
+            if (!itemStack.isEmpty()) {
+                itemStack = itemStack.copy();
+                this.removeFromFrame(itemStack);
+                this.dropStack(itemStack);
+            }
+        }
     }
 
     private void setAsStackHolder(ItemStack stack) {
-        if (!stack.isEmpty()) { // && stack.getFrame() != this) {
+        if (!stack.isEmpty() && stack.getFrame() != this) {
             stack.setHolder(this);
         }
 
-        this.updateAttachmentPosition();
-    }
-
-    public OptionalInt getMapId() {
-        ItemStack itemStack = this.getHeldItemStack();
-        if (itemStack.isOf(Items.FILLED_MAP)) {
-            Integer integer = FilledMapItem.getMapId(itemStack);
-            if (integer != null) {
-                return OptionalInt.of(integer);
-            }
-        }
-
-        return OptionalInt.empty();
-    }
-
-    public boolean containsMap() {
-        return this.getMapId().isPresent();
+        this.updateAttachmentPosition(); // This method is modified in this class
     }
 
     @Override
@@ -262,19 +232,20 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
 
             @Override
             public boolean set(ItemStack stack) {
-                BigItemDisplayEntity.this.setHeldItemStack(stack);
+                BigItemDisplayEntity.this.setHeldItemStack(stack); // This method is modified in this class
                 return true;
             }
-        } : super.getStackReference(mappedIndex);
+        } : ((AbstractDecorationEntity) this).getStackReference(mappedIndex);
     }
 
     @Override
     public void onTrackedDataSet(TrackedData<?> data) {
         if (data.equals(ITEM_STACK)) {
-            this.setAsStackHolder(this.getHeldItemStack());
+            this.setAsStackHolder(this.getHeldItemStack()); // This method is modified in this class
         }
     }
 
+    // Copied private method from super class
     private void removeFromFrame(ItemStack itemStack) {
         this.getMapId().ifPresent(i -> {
             MapState mapState = FilledMapItem.getMapState(i, this.getWorld());
@@ -287,18 +258,15 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
     }
 
     private void setRotation(int value, boolean updateComparators) {
-        this.getDataTracker().set(ROTATION, value % 8);
+        this.getDataTracker().set(ROTATION, value % ROTATION_CHOICES);
         if (updateComparators && this.attachmentPos != null) {
             this.getWorld().updateComparators(this.attachmentPos, Blocks.AIR);
         }
     }
 
+    @Override
     public void setRotation(int value) {
         this.setRotation(value, true);
-    }
-
-    public int getRotation() {
-        return this.getDataTracker().get(ROTATION);
     }
 
     @Override
@@ -306,9 +274,7 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
         ItemStack itemStack = player.getStackInHand(hand);
         boolean bl = !this.getHeldItemStack().isEmpty();
         boolean bl2 = !itemStack.isEmpty();
-        /* if (this.fixed) {
-            return ActionResult.PASS;
-        } else */ if (!this.getWorld().isClient) {
+        if (!this.getWorld().isClient) {
             if (!bl) {
                 if (bl2 && !this.isRemoved()) {
                     if (itemStack.isOf(Items.FILLED_MAP)) {
@@ -338,21 +304,19 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
 
     @Override
     public void writeCustomDataToNbt(NbtCompound nbt) {
-        super.writeCustomDataToNbt(nbt);
+        ((AbstractDecorationEntity) this).writeCustomDataToNbt(nbt);
         if (!this.getHeldItemStack().isEmpty()) {
             nbt.put("Item", this.getHeldItemStack().writeNbt(new NbtCompound()));
             nbt.putByte("ItemRotation", (byte)this.getRotation());
-            // nbt.putFloat("ItemDropChance", this.itemDropChance);
         }
 
         nbt.putByte("Facing", (byte)this.facing.getId());
         // nbt.putBoolean("Invisible", this.isInvisible());
-        // nbt.putBoolean("Fixed", this.fixed);
     }
 
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
-        super.readCustomDataFromNbt(nbt);
+        ((AbstractDecorationEntity) this).readCustomDataFromNbt(nbt);
         NbtCompound nbtCompound = nbt.getCompound("Item");
         if (nbtCompound != null && !nbtCompound.isEmpty()) {
             ItemStack itemStack = ItemStack.fromNbt(nbtCompound);
@@ -367,25 +331,15 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
 
             this.setHeldItemStack(itemStack, false);
             this.setRotation(nbt.getByte("ItemRotation"), false);
-            /* if (nbt.contains("ItemDropChance", NbtElement.NUMBER_TYPE)) {
-                this.itemDropChance = nbt.getFloat("ItemDropChance");
-            } */
         }
 
         this.setFacing(Direction.byId(nbt.getByte("Facing")));
         // this.setInvisible(nbt.getBoolean("Invisible"));
-        // this.fixed = nbt.getBoolean("Fixed");
     }
 
     @Override
-    public Packet<ClientPlayPacketListener> createSpawnPacket() {
-        return new EntitySpawnS2CPacket(this, this.facing.getId(), this.getDecorationBlockPos());
-    }
-
-    @Override
-    public void onSpawnPacket(EntitySpawnS2CPacket packet) {
-        super.onSpawnPacket(packet);
-        this.setFacing(Direction.byId(packet.getEntityData()));
+    public int getComparatorPower() {
+        return this.getHeldItemStack().isEmpty() ? 0 : this.getRotation() % ROTATION_CHOICES + 1;
     }
 
     @Override
@@ -394,20 +348,9 @@ public class BigItemDisplayEntity extends AbstractDecorationEntity {
         return itemStack.isEmpty() ? this.getAsItemStack() : itemStack.copy();
     }
 
+    @Override
     protected ItemStack getAsItemStack() {
-        return new ItemStack(Items.ITEM_FRAME);
-    }
-
-    @Override
-    public Vec3d getSyncedPos() {
-        return Vec3d.of(this.attachmentPos);
-    }
-
-    @Override
-    public float getBodyYaw() {
-        Direction direction = this.getHorizontalFacing();
-        int i = direction.getAxis().isVertical() ? 90 * direction.getDirection().offset() : 0;
-        return (float) MathHelper.wrapDegrees(180 + direction.getHorizontal() * 90 + this.getRotation() * 45 + i);
+        return new ItemStack(CustomItems.BIG_ITEM_DISPLAY);
     }
 
 }
