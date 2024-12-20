@@ -63,33 +63,62 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         this.updateAttachmentPosition(); // This method is modified in this class
     }
 
+    // Copied from PaintingEntity
+    private double offsetForEvenLength(int i) {
+        return i % 32 == 0 ? 0.5 : 0.0;
+    }
+
     @Override
     protected void updateAttachmentPosition() { // Partial bounding box
         if (this.facing != null) {
-            double d = 0.46875;
-            double e = (double)this.attachmentPos.getX() + 0.5 - (double)this.facing.getOffsetX() * 0.46875;
-            double f = (double)this.attachmentPos.getY() + 0.5 - (double)this.facing.getOffsetY() * 0.46875;
-            double g = (double)this.attachmentPos.getZ() + 0.5 - (double)this.facing.getOffsetZ() * 0.46875;
-            this.setPos(e, f, g);
-            double h = (double)this.getWidthPixels();
-            double i = (double)this.getHeightPixels();
-            double j = (double)this.getWidthPixels();
+            double height = (double) 1/16;
+            double centerToBlockCenter = (1 - height) / 2;
+            double centerX;
+            double centerY;
+            double centerZ;
+            double halfLengthX;
+            double halfLengthY;
+            double halfLengthZ;
+            double centerOffsetWidth = this.offsetForEvenLength(this.getWidthPixels());
+            double centerOffsetHeight = this.offsetForEvenLength(this.getHeightPixels());
             Direction.Axis axis = this.facing.getAxis();
             switch (axis) {
                 case X:
-                    h = 1.0;
+                    centerX = (double)this.attachmentPos.getX() + 0.5 - centerToBlockCenter * (double)this.facing.getOffsetX();
+                    centerY = (double)this.attachmentPos.getY() + 0.5 + centerOffsetHeight;
+                    centerZ = (double)this.attachmentPos.getZ() + 0.5 + centerOffsetWidth * (double)this.facing.getOffsetX();
+                    halfLengthX = height / 2;
+                    halfLengthY = (double)this.getHeightPixels() / 32;
+                    halfLengthZ = (double)this.getWidthPixels() / 32;
                     break;
                 case Y:
-                    i = 1.0;
+                    centerX = (double)this.attachmentPos.getX() + 0.5 - centerOffsetWidth;
+                    centerY = (double)this.attachmentPos.getY() + 0.5 - centerToBlockCenter * (double)this.facing.getOffsetY();
+                    centerZ = (double)this.attachmentPos.getZ() + 0.5 + centerOffsetHeight;
+                    halfLengthX = height / 2;
+                    halfLengthY = (double)this.getHeightPixels() / 32;
+                    halfLengthZ = (double)this.getWidthPixels() / 32;
                     break;
                 case Z:
-                    j = 1.0;
+                    centerX = (double)this.attachmentPos.getX() + 0.5 - centerOffsetWidth * (double)this.facing.getOffsetZ();
+                    centerY = (double)this.attachmentPos.getY() + 0.5 + centerOffsetHeight;
+                    centerZ = (double)this.attachmentPos.getZ() + 0.5 - centerToBlockCenter * (double)this.facing.getOffsetZ();
+                    halfLengthX = (double)this.getWidthPixels() / 32;
+                    halfLengthY = (double)this.getHeightPixels() / 32;
+                    halfLengthZ = height / 2;
+                    break;
+                default: // Code never reached at runtime, wrote this to pass IDE check
+                    centerX = (double)this.attachmentPos.getX() + 0.5 - centerOffsetWidth * (double)this.facing.getOffsetX();
+                    centerY = (double)this.attachmentPos.getY() + 0.5 - centerOffsetWidth * (double)this.facing.getOffsetY();
+                    centerZ = (double)this.attachmentPos.getZ() + 0.5 - centerOffsetWidth * (double)this.facing.getOffsetZ();
+                    // Below is NOT actual measure of the vertices, far more complicated
+                    halfLengthX = (double)this.getWidthPixels() / 32 * (double)this.facing.getOffsetX();
+                    halfLengthY = (double)this.getHeightPixels() / 32;
+                    halfLengthZ = (double)this.getWidthPixels() / 32 * (double)this.facing.getOffsetZ();
             }
 
-            h /= 32.0;
-            i /= 32.0;
-            j /= 32.0;
-            this.setBoundingBox(new Box(e - h, f - i, g - j, e + h, f + i, g + j));
+            this.setPos(centerX, centerY, centerZ);
+            this.setBoundingBox(new Box(centerX - halfLengthX, centerY - halfLengthY, centerZ - halfLengthZ, centerX + halfLengthX, centerY + halfLengthY, centerZ + halfLengthZ));
         }
     }
 
@@ -135,12 +164,12 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
 
     @Override
     public int getWidthPixels() {
-        return 32;
+        return 26;
     }
 
     @Override
     public int getHeightPixels() {
-        return 32;
+        return 26;
     }
 
     @Override
@@ -312,6 +341,7 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
 
         nbt.putByte("Facing", (byte)this.facing.getId());
         // nbt.putBoolean("Invisible", this.isInvisible());
+        // Plan to add nbt data representing width and height here
     }
 
     @Override
