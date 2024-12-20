@@ -11,7 +11,6 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.decoration.AbstractDecorationEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.StackReference;
@@ -35,7 +34,7 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
     private static final Logger BIG_ITEM_DISPLAY_LOGGER = LogUtils.getLogger();
     private static final TrackedData<ItemStack> ITEM_STACK = DataTracker.registerData(BigItemDisplayEntity.class, TrackedDataHandlerRegistry.ITEM_STACK);
     private static final TrackedData<Integer> ROTATION = DataTracker.registerData(BigItemDisplayEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    public static final int ROTATION_CHOICES = 12;
+    public static final int ROTATION_CHOICES = 24;
 
     public BigItemDisplayEntity(EntityType<? extends ItemFrameEntity> entityType, World world) {
         super(entityType, world);
@@ -44,6 +43,12 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
     public BigItemDisplayEntity(World world, BlockPos pos, Direction facing) {
         super(CustomEntityType.BIG_ITEM_DISPLAY, world, pos, facing);
         this.setFacing(facing);
+    }
+
+    @Override
+    protected void initDataTracker() {
+        this.getDataTracker().startTracking(ITEM_STACK, ItemStack.EMPTY);
+        this.getDataTracker().startTracking(ROTATION, 0);
     }
 
     @Override
@@ -149,17 +154,31 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
 
     @Override
     public void move(MovementType movementType, Vec3d movement) {
-        ((AbstractDecorationEntity) this).move(movementType, movement);
+        // Copied from AbstractDecorationEntity.move(MovementType movementType, Vec3d movement);
+        if (!this.getWorld().isClient && !this.isRemoved() && movement.lengthSquared() > 0.0) {
+            this.kill();
+            this.onBreak(null);
+        }
     }
 
     @Override
     public void addVelocity(double deltaX, double deltaY, double deltaZ) {
-        ((AbstractDecorationEntity) this).addVelocity(deltaX, deltaY, deltaZ);
+        // Copied from AbstractDecorationEntity.addVelocity(double deltaX, double deltaY, double deltaZ)
+        if (!this.getWorld().isClient && !this.isRemoved() && deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ > 0.0) {
+            this.kill();
+            this.onBreak(null);
+        }
     }
 
     @Override
     public boolean shouldRender(double distance) {
-        return ((Entity) this).shouldRender(distance);
+        // Copied from Entity.shouldRender(double distance)
+        double d = this.getBoundingBox().getAverageSideLength();
+        if (Double.isNaN(d)) {
+            d = 1.0;
+        }
+        d *= 64.0 * getRenderDistanceMultiplier();
+        return distance < d * d;
     }
 
     @Override
@@ -191,7 +210,18 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
             }
             return true;
         } else {
-            return ((AbstractDecorationEntity) this).damage(source, amount);
+            // Copied from AbstractDecorationEntity.damage(DamageSource source, float amount);
+            if (this.isInvulnerableTo(source)) {
+                return false;
+            } else {
+                if (!this.isRemoved() && !this.getWorld().isClient) {
+                    this.kill();
+                    this.scheduleVelocityUpdate();
+                    this.onBreak(source.getAttacker());
+                }
+
+                return true;
+            }
         }
     }
 
@@ -264,7 +294,12 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
                 BigItemDisplayEntity.this.setHeldItemStack(stack); // This method is modified in this class
                 return true;
             }
-        } : ((AbstractDecorationEntity) this).getStackReference(mappedIndex);
+        } : StackReference.EMPTY; // Copied from Entity.getStackReference(int mappedIndex);
+    }
+
+    @Override
+    public ItemStack getHeldItemStack() {
+        return this.getDataTracker().get(ITEM_STACK);
     }
 
     @Override
@@ -284,6 +319,11 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
             }
         });
         itemStack.setHolder(null);
+    }
+
+    @Override
+    public int getRotation() {
+        return this.getDataTracker().get(ROTATION);
     }
 
     private void setRotation(int value, boolean updateComparators) {
@@ -333,7 +373,12 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
 
     @Override
     public void writeCustomDataToNbt(NbtCompound nbt) {
-        ((AbstractDecorationEntity) this).writeCustomDataToNbt(nbt);
+        // Copied from AbstractDecorationEntity.writeCustomDataToNbt(NbtCompound nbt)
+        BlockPos blockPos = this.getDecorationBlockPos();
+        nbt.putInt("TileX", blockPos.getX());
+        nbt.putInt("TileY", blockPos.getY());
+        nbt.putInt("TileZ", blockPos.getZ());
+        //
         if (!this.getHeldItemStack().isEmpty()) {
             nbt.put("Item", this.getHeldItemStack().writeNbt(new NbtCompound()));
             nbt.putByte("ItemRotation", (byte)this.getRotation());
@@ -346,7 +391,14 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
 
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
-        ((AbstractDecorationEntity) this).readCustomDataFromNbt(nbt);
+        // Copied from AbstractDecorationEntity.readCustomDataFromNbt(NbtCompound nbt)
+        BlockPos blockPos = new BlockPos(nbt.getInt("TileX"), nbt.getInt("TileY"), nbt.getInt("TileZ"));
+        if (!blockPos.isWithinDistance(this.getBlockPos(), 16.0)) {
+            BIG_ITEM_DISPLAY_LOGGER.error("Hanging entity at invalid position: {}", blockPos);
+        } else {
+            this.attachmentPos = blockPos;
+        }
+        //
         NbtCompound nbtCompound = nbt.getCompound("Item");
         if (nbtCompound != null && !nbtCompound.isEmpty()) {
             ItemStack itemStack = ItemStack.fromNbt(nbtCompound);
@@ -369,7 +421,7 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
 
     @Override
     public int getComparatorPower() {
-        return this.getHeldItemStack().isEmpty() ? 0 : this.getRotation() % ROTATION_CHOICES + 1;
+        return this.getHeldItemStack().isEmpty() ? 0 : (this.getRotation() % ROTATION_CHOICES) / 2 + 1;
     }
 
     @Override
