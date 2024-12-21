@@ -68,9 +68,9 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         this.updateAttachmentPosition(); // This method is modified in this class
     }
 
-    // Copied from PaintingEntity
+    // Copied from AbstractDecorationEntity (for PaintingEntity) and modified that
     private double offsetForEvenLength(int i) {
-        return i % 32 == 0 ? 0.5 : 0.0;
+        return (i-1) % 32 >= 16 ? 0.5 : 0.0;
     }
 
     @Override
@@ -91,21 +91,21 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
                 case X:
                     centerX = (double)this.attachmentPos.getX() + 0.5 - centerToBlockCenter * (double)this.facing.getOffsetX();
                     centerY = (double)this.attachmentPos.getY() + 0.5 + centerOffsetHeight;
-                    centerZ = (double)this.attachmentPos.getZ() + 0.5 + centerOffsetWidth * (double)this.facing.getOffsetX();
+                    centerZ = (double)this.attachmentPos.getZ() + 0.5 - centerOffsetWidth * (double)this.facing.getOffsetX(); // this.facing is opposite to the direction of the camera, so placed on right <-> minus z
                     halfLengthX = height / 2;
                     halfLengthY = (double)this.getHeightPixels() / 32;
                     halfLengthZ = (double)this.getWidthPixels() / 32;
                     break;
                 case Y:
-                    centerX = (double)this.attachmentPos.getX() + 0.5 - centerOffsetWidth;
+                    centerX = (double)this.attachmentPos.getX() + 0.5 + centerOffsetWidth; // East
                     centerY = (double)this.attachmentPos.getY() + 0.5 - centerToBlockCenter * (double)this.facing.getOffsetY();
-                    centerZ = (double)this.attachmentPos.getZ() + 0.5 + centerOffsetHeight;
+                    centerZ = (double)this.attachmentPos.getZ() + 0.5 - centerOffsetHeight; // North
                     halfLengthX = height / 2;
                     halfLengthY = (double)this.getHeightPixels() / 32;
                     halfLengthZ = (double)this.getWidthPixels() / 32;
                     break;
                 case Z:
-                    centerX = (double)this.attachmentPos.getX() + 0.5 - centerOffsetWidth * (double)this.facing.getOffsetZ();
+                    centerX = (double)this.attachmentPos.getX() + 0.5 + centerOffsetWidth * (double)this.facing.getOffsetZ(); // Sign of centerOffset similar with above
                     centerY = (double)this.attachmentPos.getY() + 0.5 + centerOffsetHeight;
                     centerZ = (double)this.attachmentPos.getZ() + 0.5 - centerToBlockCenter * (double)this.facing.getOffsetZ();
                     halfLengthX = (double)this.getWidthPixels() / 32;
@@ -127,13 +127,72 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         }
     }
 
+    // Copied from AbstractDecorationEntity (the judgement of PaintingEntity) and modified that
     @Override
     public boolean canStayAttached() {
         if (!this.getWorld().isSpaceEmpty(this)) {
             return false;
         } else {
+            int i = (this.getWidthPixels() - 1) / 16 + 1;
+            int j = (this.getHeightPixels() - 1) / 16 + 1;
+            BlockPos blockPos = this.attachmentPos.offset(this.facing.getOpposite());
+            Direction.Axis axis = this.facing.getAxis();
+            Direction directionWidth;
+            Direction directionHeight = switch (axis) { // Enhanced Switch, provided by IDE
+                case X -> {
+                    directionWidth = this.facing.getOffsetX() > 0 ? Direction.NORTH : Direction.SOUTH; // North = -Z; same sign as in updateAttachmentPosition
+                    yield Direction.UP;
+                }
+                case Y -> {
+                    directionWidth = Direction.EAST; // East = +X; same sign as in updateAttachmentPosition
+                    yield Direction.NORTH; // North = -Z; same sign as in updateAttachmentPosition
+                }
+                case Z -> {
+                    directionWidth = this.facing.getOffsetZ() > 0 ? Direction.EAST : Direction.WEST; // East = +X; same sign as in updateAttachmentPosition
+                    yield Direction.UP;
+                }
+                default -> { // Code never reached at runtime, wrote this to pass IDE check
+                    directionWidth = Direction.EAST;
+                    yield Direction.UP;
+                }
+            };
+            /* Original Switch expression:
+            switch (axis) {
+                case X:
+                    directionWidth = this.facing.getOffsetX() > 0 ? Direction.NORTH : Direction.SOUTH; // North = -Z; same sign as in updateAttachmentPosition
+                    directionHeight = Direction.UP;
+                    break;
+                case Y:
+                    directionWidth = Direction.EAST; // East = +X; same sign as in updateAttachmentPosition
+                    directionHeight = Direction.NORTH; // North = -Z; same sign as in updateAttachmentPosition
+                    break;
+                case Z:
+                    directionWidth = this.facing.getOffsetZ() > 0 ? Direction.EAST : Direction.WEST; // East = +X; same sign as in updateAttachmentPosition
+                    directionHeight = Direction.UP;
+                    break;
+                default: // Code never reached at runtime, wrote this to pass IDE check
+                    directionWidth = Direction.EAST;
+                    directionHeight = Direction.UP;
+            } */
+            BlockPos.Mutable mutable = new BlockPos.Mutable();
+
+            for (int k = 0; k < i; k++) {
+                for (int l = 0; l < j; l++) {
+                    int m = (i - 1) / -2;
+                    int n = (j - 1) / -2;
+                    mutable.set(blockPos).move(directionWidth, k + m).move(directionHeight, l + n);
+                    BlockState blockState = this.getWorld().getBlockState(mutable);
+                    if (!blockState.isSolid() && !(this.facing.getAxis().isHorizontal() && AbstractRedstoneGateBlock.isRedstoneGate(blockState))) {
+                        return false;
+                    }
+                }
+            }
+
+            return this.getWorld().getOtherEntities(this, this.getBoundingBox(), PREDICATE).isEmpty();
+            /* Below: judgement of ItemFrameEntity, only detects the attached block
             BlockState blockState = this.getWorld().getBlockState(this.attachmentPos.offset(this.facing.getOpposite()));
             return (blockState.isSolid() || this.facing.getAxis().isHorizontal() && AbstractRedstoneGateBlock.isRedstoneGate(blockState)) && this.getWorld().getOtherEntities(this, this.getBoundingBox(), PREDICATE).isEmpty();
+            */
         }
     }
 

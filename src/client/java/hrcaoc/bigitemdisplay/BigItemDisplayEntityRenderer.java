@@ -75,17 +75,16 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
                 matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) bigItemDisplayEntity.getRotation() % 4 * 90.0F + 180.0F));
                 float h = (float) scaleFactor/128;
                 matrixStack.scale(h, h, h);
-                matrixStack.translate(-32.0F * (1 + scaleFactor), -32.0F * (1 + scaleFactor), -1.0F);
+                matrixStack.translate(-64.0F, -64.0F, -1.0F);
                 MapState mapState = FilledMapItem.getMapState(optionalInt.getAsInt(), bigItemDisplayEntity.getWorld());
                 if (mapState != null) {
                     int k = this.getLight(15728850, light);
                     MinecraftClient.getInstance().gameRenderer.getMapRenderer().draw(matrixStack, vertexConsumerProvider, optionalInt.getAsInt(), mapState, true, k);
                 }
             } else {
-                matrixStack.translate(+0.5F, +0.5F, -0.3F);
                 matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) bigItemDisplayEntity.getRotation() * 360.0F / BigItemDisplayEntity.ROTATION_CHOICES));
                 int l = this.getLight(15728880, light);
-                // matrixStack.scale(0.5F, 0.5F, 0.5F);
+                matrixStack.scale(0.5F * scaleFactor, 0.5F * scaleFactor, 0.5F * scaleFactor);
                 this.itemRenderer.renderItem(itemStack, ModelTransformationMode.FIXED, l, OverlayTexture.DEFAULT_UV, matrixStack, vertexConsumerProvider, bigItemDisplayEntity.getWorld(), bigItemDisplayEntity.getId());
             }
         }
