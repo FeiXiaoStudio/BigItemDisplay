@@ -68,9 +68,32 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         this.updateAttachmentPosition(); // This method is modified in this class
     }
 
+    public Direction getFacing() { // == this.getHorizontalFacing();
+        return this.facing;
+    }
+
+    @Override
+    public int getWidthPixels() {
+        return 26;
+    }
+
+    @Override
+    public int getHeightPixels() {
+        return 26;
+    }
+
+    public int getWidthBlocks() {
+        return (this.getWidthPixels() - 1) / 16 + 1;
+    }
+
+    public int getHeightBlocks() {
+        return (this.getHeightPixels() - 1) / 16 + 1;
+    }
+
     // Copied from AbstractDecorationEntity (for PaintingEntity) and modified that
     private double offsetForEvenLength(int i) {
-        return (i-1) % 32 >= 16 ? 0.5 : 0.0;
+        // return (double) ((w%2 - 1) / 2); // w = length in blocks
+        return (i-1) % 32 >= 16 ? 0.5 : 0.0; // w = length in pixels
     }
 
     @Override
@@ -100,9 +123,9 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
                     centerX = (double)this.attachmentPos.getX() + 0.5 + centerOffsetWidth; // East
                     centerY = (double)this.attachmentPos.getY() + 0.5 - centerToBlockCenter * (double)this.facing.getOffsetY();
                     centerZ = (double)this.attachmentPos.getZ() + 0.5 - centerOffsetHeight; // North
-                    halfLengthX = height / 2;
-                    halfLengthY = (double)this.getHeightPixels() / 32;
-                    halfLengthZ = (double)this.getWidthPixels() / 32;
+                    halfLengthX = (double)this.getWidthPixels() / 32;
+                    halfLengthY = height / 2;
+                    halfLengthZ = (double)this.getHeightPixels() / 32;
                     break;
                 case Z:
                     centerX = (double)this.attachmentPos.getX() + 0.5 + centerOffsetWidth * (double)this.facing.getOffsetZ(); // Sign of centerOffset similar with above
@@ -133,8 +156,8 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         if (!this.getWorld().isSpaceEmpty(this)) {
             return false;
         } else {
-            int i = (this.getWidthPixels() - 1) / 16 + 1;
-            int j = (this.getHeightPixels() - 1) / 16 + 1;
+            int w = getWidthBlocks();
+            int h = getHeightBlocks();
             BlockPos blockPos = this.attachmentPos.offset(this.facing.getOpposite());
             Direction.Axis axis = this.facing.getAxis();
             Direction directionWidth;
@@ -176,13 +199,13 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
             } */
             BlockPos.Mutable mutable = new BlockPos.Mutable();
 
-            for (int k = 0; k < i; k++) {
-                for (int l = 0; l < j; l++) {
-                    int m = (i - 1) / -2;
-                    int n = (j - 1) / -2;
-                    mutable.set(blockPos).move(directionWidth, k + m).move(directionHeight, l + n);
+            int m = (w - 1) / -2;
+            int n = (h - 1) / -2;
+            for (int i = 0; i < w; i++) {
+                for (int j = 0; j < h; j++) {
+                    mutable.set(blockPos).move(directionWidth, i + m).move(directionHeight, j + n);
                     BlockState blockState = this.getWorld().getBlockState(mutable);
-                    if (!blockState.isSolid() && !(this.facing.getAxis().isHorizontal() && AbstractRedstoneGateBlock.isRedstoneGate(blockState))) {
+                    if (!( blockState.isSolid() || axis.isHorizontal() && AbstractRedstoneGateBlock.isRedstoneGate(blockState) )) { // && evaluated before ||
                         return false;
                     }
                 }
@@ -238,16 +261,6 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         }
         d *= 64.0 * getRenderDistanceMultiplier();
         return distance < d * d;
-    }
-
-    @Override
-    public int getWidthPixels() {
-        return 26;
-    }
-
-    @Override
-    public int getHeightPixels() {
-        return 26;
     }
 
     @Override
@@ -444,7 +457,7 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         }
 
         nbt.putByte("Facing", (byte)this.facing.getId());
-        // nbt.putBoolean("Invisible", this.isInvisible());
+        nbt.putBoolean("Invisible", this.isInvisible());
         // Plan to add nbt data representing width and height here
     }
 
@@ -475,7 +488,7 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         }
 
         this.setFacing(Direction.byId(nbt.getByte("Facing")));
-        // this.setInvisible(nbt.getBoolean("Invisible"));
+        this.setInvisible(nbt.getBoolean("Invisible"));
     }
 
     @Override

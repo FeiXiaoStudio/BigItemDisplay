@@ -8,7 +8,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public class CustomBlocks {
-    public static Block register(Block block, String name) {
+    private static Block register(Block block, String name) {
         // Register the block and its item
         Identifier id = new Identifier(BigItemDisplay.MOD_ID, name);
         BlockItem blockItem = new BlockItem(block, new Item.Settings());
@@ -17,7 +17,7 @@ public class CustomBlocks {
         return Registry.register(Registries.BLOCK, id, block);
     }
 
-    public static Block register(Block block, String name, boolean shouldRegisterItem) {
+    private static Block register(Block block, String name, boolean shouldRegisterItem) {
         // Register the block
         Identifier id = new Identifier(BigItemDisplay.MOD_ID, name);
 

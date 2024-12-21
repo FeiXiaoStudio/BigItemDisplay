@@ -8,6 +8,7 @@ import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.item.ItemRenderer;
+import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedModelManager;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.texture.SpriteAtlasTexture;
@@ -29,12 +30,12 @@ import java.util.OptionalInt;
 
 @Environment(EnvType.CLIENT)
 public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayEntity>  {
-    private static final ModelIdentifier NORMAL_DISPLAY = ModelIdentifier.ofVanilla("item_frame", "map=false");
+    private static final ModelIdentifier NORMAL_DISPLAY = ModelIdentifier.ofVanilla("item_frame", "map=false"); // CustomModels.NORMAL_DISPLAY;
     private static final ModelIdentifier DISPLAY_WITH_MAP = ModelIdentifier.ofVanilla("item_frame", "map=true");
     private static final ModelIdentifier GLOW_DISPLAY = ModelIdentifier.ofVanilla("glow_item_frame", "map=false");
     private static final ModelIdentifier GLOW_DISPLAY_WITH_MAP = ModelIdentifier.ofVanilla("glow_item_frame", "map=true");
     public static final int GLOW_FRAME_BLOCK_LIGHT = 15;
-    public boolean isPlayerPresent = false; // Add player detection here
+    public boolean isPlayerPresent = true; // Add player detection here
     private final ItemRenderer itemRenderer;
     private final BlockRenderManager blockRenderManager;
 
@@ -47,7 +48,7 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
     public void render(BigItemDisplayEntity bigItemDisplayEntity, float yaw, float tickDelta, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light) {
         super.render(bigItemDisplayEntity, yaw, tickDelta, matrixStack, vertexConsumerProvider, light); // render label of the item inside display
         matrixStack.push();
-        Direction direction = bigItemDisplayEntity.getHorizontalFacing();
+        Direction direction = bigItemDisplayEntity.getFacing();
         Vec3d itemPositionOffset = this.getPositionOffset(bigItemDisplayEntity, tickDelta);
         matrixStack.translate(-itemPositionOffset.getX(), -itemPositionOffset.getY(), -itemPositionOffset.getZ());
         double height = (double) 1/16;
@@ -58,8 +59,17 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
 
         boolean isDisplayVisible = !bigItemDisplayEntity.isInvisible();
         ItemStack itemStack = bigItemDisplayEntity.getHeldItemStack();
+        int w = bigItemDisplayEntity.getWidthBlocks();
+        int h = bigItemDisplayEntity.getHeightBlocks();
         if (isDisplayVisible) { // Must be placed here
-            renderDisplay(itemStack, matrixStack, vertexConsumerProvider, light);
+            int m = (w - 1) / -2;
+            int n = (h - 1) / -2;
+            BakedModelManager bakedModelManager = this.blockRenderManager.getModels().getModelManager();
+            for (int i = 0; i < w; i++) {
+                for (int j = 0; j < h; j++) {
+                    renderDisplay(matrixStack, vertexConsumerProvider, bakedModelManager.getModel(this.getModelId(itemStack)), light, - i - m, j + n - 1, -0.5F);
+                }
+            }
         }
 
         if (!itemStack.isEmpty()) {
@@ -70,11 +80,11 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
             }
 
             OptionalInt optionalInt = bigItemDisplayEntity.getMapId();
-            int scaleFactor = 2;
+            int scaleFactor = Math.min(w,h);
             if (optionalInt.isPresent()) {
                 matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) bigItemDisplayEntity.getRotation() % 4 * 90.0F + 180.0F));
-                float h = (float) scaleFactor/128;
-                matrixStack.scale(h, h, h);
+                float s = (float) scaleFactor/128;
+                matrixStack.scale(s, s, s);
                 matrixStack.translate(-64.0F, -64.0F, -1.0F);
                 MapState mapState = FilledMapItem.getMapState(optionalInt.getAsInt(), bigItemDisplayEntity.getWorld());
                 if (mapState != null) {
@@ -91,12 +101,10 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
         matrixStack.pop();
     }
 
-    private void renderDisplay(ItemStack itemStack, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light) {
-        BakedModelManager bakedModelManager = this.blockRenderManager.getModels().getModelManager();
-        ModelIdentifier modelIdentifier = this.getModelId(itemStack);
+    private void renderDisplay(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, BakedModel bakedModel, int light, float shiftX, float shiftY, float shiftZ) {
         matrixStack.push();
-        matrixStack.translate(-0.5F, -0.5F, -0.5F);
-        this.blockRenderManager.getModelRenderer().render(matrixStack.peek(), vertexConsumerProvider.getBuffer(TexturedRenderLayers.getEntitySolid()), null, bakedModelManager.getModel(modelIdentifier), 1.0F, 1.0F, 1.0F, light, OverlayTexture.DEFAULT_UV);
+        matrixStack.translate(shiftX, shiftY, shiftZ);
+        this.blockRenderManager.getModelRenderer().render(matrixStack.peek(), vertexConsumerProvider.getBuffer(TexturedRenderLayers.getEntitySolid()), null, bakedModel, 1.0F, 1.0F, 1.0F, light, OverlayTexture.DEFAULT_UV);
         matrixStack.pop();
     }
 
@@ -113,7 +121,7 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
     }
 
     protected int getBlockLight(BigItemDisplayEntity bigItemDisplayEntity, BlockPos blockPos) {
-        return bigItemDisplayEntity.getType() == EntityType.GLOW_ITEM_FRAME ? Math.max(GLOW_FRAME_BLOCK_LIGHT, super.getBlockLight(bigItemDisplayEntity, blockPos)) : super.getBlockLight(bigItemDisplayEntity, blockPos);
+        return isPlayerPresent ? Math.max(GLOW_FRAME_BLOCK_LIGHT, super.getBlockLight(bigItemDisplayEntity, blockPos)) : super.getBlockLight(bigItemDisplayEntity, blockPos);
     }
 
     public Identifier getTexture(BigItemDisplayEntity bigItemDisplayEntity) {
@@ -122,8 +130,8 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
 
     @Override
     public Vec3d getPositionOffset(BigItemDisplayEntity bigItemDisplayEntity, float tickDelta) {
-        Direction direction = bigItemDisplayEntity.getHorizontalFacing();
-        return new Vec3d((double)((float) direction.getOffsetX() * 0.3F), -0.25D, (double)((float) direction.getOffsetZ() * 0.3F));
+        Direction direction = bigItemDisplayEntity.getFacing();
+        return new Vec3d(direction.getOffsetX() * 0.3F, -0.25D, direction.getOffsetZ() * 0.3F);
     }
 
     // Copy the following methods from ItemFrameEntityRenderer

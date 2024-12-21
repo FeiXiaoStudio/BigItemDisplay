@@ -15,7 +15,7 @@ public class CustomItems {
             new BigItemDisplayItem(CustomEntityType.BIG_ITEM_DISPLAY, new Item.Settings())
     );
 
-    public static Item register(String id, Item item) {
+    private static Item register(String id, Item item) {
         // Create the identifier for the item (2nd param), register the item and return
         return Registry.register(Registries.ITEM, Identifier.of(BigItemDisplay.MOD_ID, id), item);
     }
