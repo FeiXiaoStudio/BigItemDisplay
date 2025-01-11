@@ -8,7 +8,7 @@ import net.minecraft.client.render.block.BlockRenderManager;
 import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.render.model.BakedModel;
+// import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedModelManager;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.ModelIdentifier;
@@ -57,14 +57,18 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
         int w = bigItemDisplayEntity.getWidthBlocks();
         int h = bigItemDisplayEntity.getHeightBlocks();
         if (isDisplayVisible) { // Must be placed here
-            int m = (w - 1) / -2;
-            int n = (h - 1) / -2;
             BakedModelManager bakedModelManager = this.blockRenderManager.getModels().getModelManager();
+            matrixStack.push();
+            matrixStack.translate(-0.5F, -0.5F, -0.5F);
+            this.blockRenderManager.getModelRenderer().render(matrixStack.peek(), vertexConsumerProvider.getBuffer(TexturedRenderLayers.getEntitySolid()), null, bakedModelManager.getModel(this.getModelId(itemStack)), 1.0F, 1.0F, 1.0F, light, OverlayTexture.DEFAULT_UV);
+            matrixStack.pop();
+            /*int m = (w - 1) / -2;
+            int n = (h - 1) / -2;
             for (int i = 0; i < w; i++) {
                 for (int j = 0; j < h; j++) {
                     renderDisplay(matrixStack, vertexConsumerProvider, bakedModelManager.getModel(this.getModelId(itemStack)), light, - i - m, j + n - 1); // When facing the item, +i = right, +j = up
                 }
-            }
+            }*/
         }
 
         if (!itemStack.isEmpty()) {
@@ -96,12 +100,12 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
         matrixStack.pop();
     }
 
-    private void renderDisplay(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, BakedModel bakedModel, int light, float shiftX, float shiftY) {
+    /*private void renderDisplay(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, BakedModel bakedModel, int light, float shiftX, float shiftY) {
         matrixStack.push();
         matrixStack.translate(shiftX, shiftY, -0.5F);
         this.blockRenderManager.getModelRenderer().render(matrixStack.peek(), vertexConsumerProvider.getBuffer(TexturedRenderLayers.getEntitySolid()), null, bakedModel, 1.0F, 1.0F, 1.0F, light, OverlayTexture.DEFAULT_UV);
         matrixStack.pop();
-    }
+    }*/
 
     private ModelIdentifier getModelId(ItemStack stack) {
         String variant = "glow=" + isPlayerPresent + "," + "map=" + stack.isOf(Items.FILLED_MAP); // Must be dict order!
