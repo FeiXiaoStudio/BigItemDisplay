@@ -62,7 +62,7 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
             BakedModelManager bakedModelManager = this.blockRenderManager.getModels().getModelManager();
             for (int i = 0; i < w; i++) {
                 for (int j = 0; j < h; j++) {
-                    renderDisplay(matrixStack, vertexConsumerProvider, bakedModelManager.getModel(this.getModelId(itemStack)), light, - i - m, j + n - 1, -0.5F);
+                    renderDisplay(matrixStack, vertexConsumerProvider, bakedModelManager.getModel(this.getModelId(itemStack)), light, - i - m, j + n - 1); // When facing the item, +i = right, +j = up
                 }
             }
         }
@@ -96,9 +96,9 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
         matrixStack.pop();
     }
 
-    private void renderDisplay(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, BakedModel bakedModel, int light, float shiftX, float shiftY, float shiftZ) {
+    private void renderDisplay(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, BakedModel bakedModel, int light, float shiftX, float shiftY) {
         matrixStack.push();
-        matrixStack.translate(shiftX, shiftY, shiftZ);
+        matrixStack.translate(shiftX, shiftY, -0.5F);
         this.blockRenderManager.getModelRenderer().render(matrixStack.peek(), vertexConsumerProvider.getBuffer(TexturedRenderLayers.getEntitySolid()), null, bakedModel, 1.0F, 1.0F, 1.0F, light, OverlayTexture.DEFAULT_UV);
         matrixStack.pop();
     }

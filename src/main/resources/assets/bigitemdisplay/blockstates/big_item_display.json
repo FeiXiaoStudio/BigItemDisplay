@@ -1,8 +1,8 @@
 {
   "variants": {
     "map=false,glow=false": { "model": "bigitemdisplay:block/big_item_display" },
-    "map=true,glow=false":  { "model": "bigitemdisplay:block/big_item_display_map" },
-    "map=false,glow=true": {"model": "bigitemdisplay:block/glow_big_item_display" },
-    "map=true,glow=true": {"model": "bigitemdisplay:block/glow_big_item_display_map" }
+    "map=true,glow=false": { "model": "bigitemdisplay:block/big_item_display_map" },
+    "map=false,glow=true": { "model": "bigitemdisplay:block/glow_big_item_display" },
+    "map=true,glow=true": { "model": "bigitemdisplay:block/glow_big_item_display_map" }
   }
 }
