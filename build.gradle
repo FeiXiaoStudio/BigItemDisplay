@@ -16,6 +16,10 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+	/*maven { // LambDynamicLights
+		name = "Gegy"
+		url = uri("https://maven.gegy.dev/releases/")
+	}*/
 }
 
 loom {
@@ -44,7 +48,11 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+
+	// modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:2.3.2+1.20.1") // API only available above 1.21.1
+	// modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:2.3.2+1.20.1") // Same as above
+	// modCompileOnly("dev.lambdaurora:lambdynamiclights:2.3.1+1.20.1") // Still fails wtf
+	// modLocalRuntime("dev.lambdaurora:lambdynamiclights:2.3.2+1.20.1-local") // Same as above
 }
 
 processResources {

@@ -14,7 +14,6 @@ import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.EntityType;
 import net.minecraft.item.FilledMapItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -30,10 +29,6 @@ import java.util.OptionalInt;
 
 @Environment(EnvType.CLIENT)
 public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayEntity>  {
-    private static final ModelIdentifier NORMAL_DISPLAY = ModelIdentifier.ofVanilla("item_frame", "map=false"); // CustomModels.NORMAL_DISPLAY;
-    private static final ModelIdentifier DISPLAY_WITH_MAP = ModelIdentifier.ofVanilla("item_frame", "map=true");
-    private static final ModelIdentifier GLOW_DISPLAY = ModelIdentifier.ofVanilla("glow_item_frame", "map=false");
-    private static final ModelIdentifier GLOW_DISPLAY_WITH_MAP = ModelIdentifier.ofVanilla("glow_item_frame", "map=true");
     public static final int GLOW_FRAME_BLOCK_LIGHT = 15;
     public boolean isPlayerPresent = true; // Add player detection here
     private final ItemRenderer itemRenderer;
@@ -109,11 +104,8 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
     }
 
     private ModelIdentifier getModelId(ItemStack stack) {
-        if (stack.isOf(Items.FILLED_MAP)) {
-            return isPlayerPresent ? GLOW_DISPLAY_WITH_MAP : DISPLAY_WITH_MAP;
-        } else {
-            return isPlayerPresent ? GLOW_DISPLAY : NORMAL_DISPLAY;
-        }
+        String variant = "map=" + stack.isOf(Items.FILLED_MAP) + ",glow=" + isPlayerPresent;
+        return new ModelIdentifier(BigItemDisplay.MOD_ID, "big_item_display", variant);
     }
 
     private int getLight(int glowLight, int regularLight) {

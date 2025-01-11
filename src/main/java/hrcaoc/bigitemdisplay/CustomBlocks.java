@@ -9,12 +9,7 @@ import net.minecraft.util.Identifier;
 
 public class CustomBlocks {
     private static Block register(Block block, String name) {
-        // Register the block and its item
-        Identifier id = new Identifier(BigItemDisplay.MOD_ID, name);
-        BlockItem blockItem = new BlockItem(block, new Item.Settings());
-        Registry.register(Registries.ITEM, id, blockItem);
-
-        return Registry.register(Registries.BLOCK, id, block);
+        return register(block, name, true);
     }
 
     private static Block register(Block block, String name, boolean shouldRegisterItem) {
