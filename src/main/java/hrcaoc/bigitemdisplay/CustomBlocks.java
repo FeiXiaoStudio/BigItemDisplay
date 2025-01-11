@@ -1,5 +1,6 @@
 package hrcaoc.bigitemdisplay;
 
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -8,6 +9,15 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 public class CustomBlocks {
+    public static final Block ITEM_DISPLAY_BLOCK = register(
+        new BigItemDisplayBlock(
+                AbstractBlock.Settings.create()
+                .luminance(BigItemDisplayBlock::getLuminance)
+            ),
+        "big_item_display",
+        false
+    );
+
     private static Block register(Block block, String name) {
         return register(block, name, true);
     }

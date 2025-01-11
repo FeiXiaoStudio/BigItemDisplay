@@ -2,12 +2,6 @@ package hrcaoc.bigitemdisplay;
 
 import net.fabricmc.api.ModInitializer;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.Identifier;
-
 public class BigItemDisplay implements ModInitializer {
 	public static final String MOD_ID = "bigitemdisplay";
 
@@ -23,7 +17,7 @@ public class BigItemDisplay implements ModInitializer {
 		// Proceed with mild caution.
 		// LOGGER.info("Hello Fabric world!");
 
-		// CustomBlocks.initialize();
+		CustomBlocks.initialize();
 		CustomEntityType.initialize();
 		CustomItems.initialize();
 	}

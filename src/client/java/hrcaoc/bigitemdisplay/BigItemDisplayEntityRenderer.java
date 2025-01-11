@@ -11,13 +11,13 @@ import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedModelManager;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
-import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.FilledMapItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.map.MapState;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -104,7 +104,7 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
     }
 
     private ModelIdentifier getModelId(ItemStack stack) {
-        String variant = "map=" + stack.isOf(Items.FILLED_MAP) + ",glow=" + isPlayerPresent;
+        String variant = "glow=" + isPlayerPresent + "," + "map=" + stack.isOf(Items.FILLED_MAP); // Must be dict order!
         return new ModelIdentifier(BigItemDisplay.MOD_ID, "big_item_display", variant);
     }
 
@@ -117,7 +117,7 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
     }
 
     public Identifier getTexture(BigItemDisplayEntity bigItemDisplayEntity) {
-        return SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE;
+        return PlayerScreenHandler.BLOCK_ATLAS_TEXTURE;
     }
 
     @Override
@@ -130,8 +130,6 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
     protected boolean hasLabel(BigItemDisplayEntity bigItemDisplayEntity) {
         if (MinecraftClient.isHudEnabled() && !bigItemDisplayEntity.getHeldItemStack().isEmpty() && bigItemDisplayEntity.getHeldItemStack().hasCustomName() && this.dispatcher.targetedEntity == bigItemDisplayEntity) {
             double d = this.dispatcher.getSquaredDistanceToCamera(bigItemDisplayEntity);
-            // float f = bigItemDisplayEntity.isSneaky() ? 32.0F : 64.0F;
-            // return d < (double)(f * f);
             return d < (double) 64.0F * 64.0F;
         } else {
             return false;
