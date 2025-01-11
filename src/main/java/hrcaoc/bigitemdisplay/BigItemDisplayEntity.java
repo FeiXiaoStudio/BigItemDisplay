@@ -74,12 +74,12 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
 
     @Override
     public int getWidthPixels() {
-        return 26;
+        return 28;
     }
 
     @Override
     public int getHeightPixels() {
-        return 26;
+        return 28;
     }
 
     public int getWidthBlocks() {

@@ -1,4 +1,6 @@
 {
   "item.bigitemdisplay.big_item_display": "2×2 Item Display",
-  "entity.bigitemdisplay.big_item_display": "2×2 Item Display"
+  "entity.bigitemdisplay.big_item_display": "2×2 Item Display",
+  "text.bigitemdisplay.showDisplay": "Show big item display: %1$s",
+  "text.bigitemdisplay.isDisplayGlowing": "Is texture of big item display glow: %1$s"
 }

@@ -29,8 +29,7 @@ import java.util.OptionalInt;
 
 @Environment(EnvType.CLIENT)
 public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayEntity>  {
-    public static final int GLOW_FRAME_BLOCK_LIGHT = 15;
-    public boolean isPlayerPresent = true; // Add player detection here
+    public static final int GLOW_FRAME_BLOCK_LIGHT = 5;
     private final ItemRenderer itemRenderer;
     private final BlockRenderManager blockRenderManager;
 
@@ -52,7 +51,7 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
         matrixStack.multiply(RotationAxis.POSITIVE_X.rotationDegrees(bigItemDisplayEntity.getPitch()));
         matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180.0F - bigItemDisplayEntity.getYaw()));
 
-        boolean isDisplayVisible = !bigItemDisplayEntity.isInvisible();
+        boolean isDisplayVisible = BigItemDisplayClient.renderRules.get("showDisplay") && !bigItemDisplayEntity.isInvisible();
         ItemStack itemStack = bigItemDisplayEntity.getHeldItemStack();
         int w = bigItemDisplayEntity.getWidthBlocks();
         int h = bigItemDisplayEntity.getHeightBlocks();
@@ -93,7 +92,8 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
             } else {
                 matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) bigItemDisplayEntity.getRotation() * 360.0F / BigItemDisplayEntity.ROTATION_CHOICES));
                 int l = this.getLight(15728880, light);
-                matrixStack.scale(0.5F * scaleFactor, 0.5F * scaleFactor, 0.5F * scaleFactor);
+                float itemScaleFactor = 0.5F * scaleFactor * (isDisplayVisible ? 1.25F : 1.75F);
+                matrixStack.scale(itemScaleFactor, itemScaleFactor, itemScaleFactor);
                 this.itemRenderer.renderItem(itemStack, ModelTransformationMode.FIXED, l, OverlayTexture.DEFAULT_UV, matrixStack, vertexConsumerProvider, bigItemDisplayEntity.getWorld(), bigItemDisplayEntity.getId());
             }
         }
@@ -108,16 +108,16 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
     }*/
 
     private ModelIdentifier getModelId(ItemStack stack) {
-        String variant = "glow=" + isPlayerPresent + "," + "map=" + stack.isOf(Items.FILLED_MAP); // Must be dict order!
+        String variant = "glow=" + BigItemDisplayClient.renderRules.get("isDisplayGlowing") + "," + "map=" + stack.isOf(Items.FILLED_MAP); // Must be dict order!
         return new ModelIdentifier(BigItemDisplay.MOD_ID, "big_item_display", variant);
     }
 
     private int getLight(int glowLight, int regularLight) {
-        return isPlayerPresent ? glowLight : regularLight;
+        return BigItemDisplayClient.renderRules.get("isDisplayGlowing") ? glowLight : regularLight;
     }
 
     protected int getBlockLight(BigItemDisplayEntity bigItemDisplayEntity, BlockPos blockPos) {
-        return isPlayerPresent ? Math.max(GLOW_FRAME_BLOCK_LIGHT, super.getBlockLight(bigItemDisplayEntity, blockPos)) : super.getBlockLight(bigItemDisplayEntity, blockPos);
+        return BigItemDisplayClient.renderRules.get("isDisplayGlowing") ? Math.max(GLOW_FRAME_BLOCK_LIGHT, super.getBlockLight(bigItemDisplayEntity, blockPos)) : super.getBlockLight(bigItemDisplayEntity, blockPos);
     }
 
     public Identifier getTexture(BigItemDisplayEntity bigItemDisplayEntity) {
