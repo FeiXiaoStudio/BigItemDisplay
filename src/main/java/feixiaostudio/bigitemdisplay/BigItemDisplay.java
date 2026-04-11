@@ -19,9 +19,9 @@ public class BigItemDisplay implements ModInitializer {
 		// Proceed with mild caution.
 		// LOGGER.info("Hello Fabric world!");
 
-		CustomBlocks.initialize();
-		CustomEntityType.initialize();
-		CustomItems.initialize();
+		BigItemDisplayBlocks.initialize();
+		BigItemDisplayEntityType.initialize();
+		BigItemDisplayItems.initialize();
 	}
 
 }

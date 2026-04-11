@@ -8,7 +8,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
-public class CustomBlocks {
+public class BigItemDisplayBlocks {
     public static final Block ITEM_DISPLAY_BLOCK = register(
         new BigItemDisplayBlock(
                 AbstractBlock.Settings.create()
@@ -18,13 +18,13 @@ public class CustomBlocks {
         false
     );
 
-    private static Block register(Block block, String name) {
+    public static Block register(Block block, String name) {
         return register(block, name, true);
     }
 
-    private static Block register(Block block, String name, boolean shouldRegisterItem) {
+    public static Block register(Block block, String name, boolean shouldRegisterItem) {
         // Register the block
-        Identifier id = new Identifier(BigItemDisplay.MOD_ID, name);
+        Identifier id = Identifier.of(BigItemDisplay.MOD_ID, name);
 
         // Sometimes, you may not want to register an item for the block.
         // Eg: if it's a technical block like `minecraft:air` or `minecraft:end_gateway`

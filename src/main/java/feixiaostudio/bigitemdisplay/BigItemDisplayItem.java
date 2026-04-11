@@ -1,10 +1,11 @@
 package feixiaostudio.bigitemdisplay;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.decoration.AbstractDecorationEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -34,9 +35,9 @@ public class BigItemDisplayItem extends DecorationItem {
             World world = context.getWorld();
             BigItemDisplayEntity bigItemDisplayEntity = new BigItemDisplayEntity(world, blockPos2, direction);
 
-            NbtCompound nbtCompound = itemStack.getNbt();
-            if (nbtCompound != null) {
-                EntityType.loadFromEntityNbt(world, playerEntity, bigItemDisplayEntity, nbtCompound);
+            NbtComponent nbtComponent = itemStack.getOrDefault(DataComponentTypes.ENTITY_DATA, NbtComponent.DEFAULT);
+            if (!nbtComponent.isEmpty()) {
+                EntityType.loadFromEntityNbt(world, playerEntity, bigItemDisplayEntity, nbtComponent);
             }
 
             if (bigItemDisplayEntity.canStayAttached()) {

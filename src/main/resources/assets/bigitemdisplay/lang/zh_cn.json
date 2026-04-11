@@ -2,5 +2,6 @@
   "item.bigitemdisplay.big_item_display": "2×2 物品展示",
   "entity.bigitemdisplay.big_item_display": "2×2 物品展示",
   "text.bigitemdisplay.showDisplay": "渲染大物品展示框: %1$s",
-  "text.bigitemdisplay.isDisplayGlowing": "大物品展示框为发光材质: %1$s"
+  "text.bigitemdisplay.isDisplayGlowing": "大物品展示框为发光材质: %1$s",
+  "tag.item.bigitemdisplay.item_frame": "物品展示框"
 }

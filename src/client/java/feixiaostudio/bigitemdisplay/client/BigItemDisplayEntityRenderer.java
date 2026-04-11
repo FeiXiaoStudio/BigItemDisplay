@@ -15,6 +15,8 @@ import net.minecraft.client.render.model.BakedModelManager;
 import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.MapIdComponent;
 import net.minecraft.item.FilledMapItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -26,8 +28,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
-
-import java.util.OptionalInt;
 
 @Environment(EnvType.CLIENT)
 public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayEntity>  {
@@ -79,17 +79,17 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
                 matrixStack.translate(0.0F, 0.0F, 0.5F);
             }
 
-            OptionalInt optionalInt = bigItemDisplayEntity.getMapId();
+            MapIdComponent mapIdComponent = bigItemDisplayEntity.getMapId(itemStack);
             int scaleFactor = Math.min(w,h);
-            if (optionalInt.isPresent()) {
+            if (mapIdComponent != null) {
                 matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) bigItemDisplayEntity.getRotation() % 4 * 90.0F + 180.0F));
                 float s = (float) scaleFactor/128;
                 matrixStack.scale(s, s, s);
                 matrixStack.translate(-64.0F, -64.0F, -1.0F);
-                MapState mapState = FilledMapItem.getMapState(optionalInt.getAsInt(), bigItemDisplayEntity.getWorld());
+                MapState mapState = FilledMapItem.getMapState(mapIdComponent, bigItemDisplayEntity.getWorld());
                 if (mapState != null) {
                     int k = this.getLight(15728850, light);
-                    MinecraftClient.getInstance().gameRenderer.getMapRenderer().draw(matrixStack, vertexConsumerProvider, optionalInt.getAsInt(), mapState, true, k);
+                    MinecraftClient.getInstance().gameRenderer.getMapRenderer().draw(matrixStack, vertexConsumerProvider, mapIdComponent, mapState, true, k);
                 }
             } else {
                 matrixStack.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) bigItemDisplayEntity.getRotation() * 360.0F / BigItemDisplayEntity.ROTATION_CHOICES));
@@ -111,7 +111,9 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
 
     private ModelIdentifier getModelId(ItemStack stack) {
         String variant = "glow=" + BigItemDisplayClient.renderRules.get("isDisplayGlowing") + "," + "map=" + stack.isOf(Items.FILLED_MAP); // Must be dict order!
-        return new ModelIdentifier(BigItemDisplay.MOD_ID, "big_item_display", variant);
+        return new ModelIdentifier(
+            Identifier.of(BigItemDisplay.MOD_ID, "big_item_display")
+            , variant);
     }
 
     private int getLight(int glowLight, int regularLight) {
@@ -134,7 +136,7 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
 
     // Copy the following methods from ItemFrameEntityRenderer
     protected boolean hasLabel(BigItemDisplayEntity bigItemDisplayEntity) {
-        if (MinecraftClient.isHudEnabled() && !bigItemDisplayEntity.getHeldItemStack().isEmpty() && bigItemDisplayEntity.getHeldItemStack().hasCustomName() && this.dispatcher.targetedEntity == bigItemDisplayEntity) {
+        if (MinecraftClient.isHudEnabled() && !bigItemDisplayEntity.getHeldItemStack().isEmpty() && bigItemDisplayEntity.getHeldItemStack().contains(DataComponentTypes.CUSTOM_NAME) && this.dispatcher.targetedEntity == bigItemDisplayEntity) {
             double d = this.dispatcher.getSquaredDistanceToCamera(bigItemDisplayEntity);
             return d < (double) 64.0F * 64.0F;
         } else {
@@ -142,8 +144,8 @@ public class BigItemDisplayEntityRenderer extends EntityRenderer<BigItemDisplayE
         }
     }
 
-    protected void renderLabelIfPresent(BigItemDisplayEntity bigItemDisplayEntity, Text text, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
-        super.renderLabelIfPresent(bigItemDisplayEntity, bigItemDisplayEntity.getHeldItemStack().getName(), matrixStack, vertexConsumerProvider, i);
+    protected void renderLabelIfPresent(BigItemDisplayEntity bigItemDisplayEntity, Text text, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, float f) {
+        super.renderLabelIfPresent(bigItemDisplayEntity, bigItemDisplayEntity.getHeldItemStack().getName(), matrixStack, vertexConsumerProvider, i, f);
     }
 
 }

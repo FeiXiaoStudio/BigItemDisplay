@@ -24,6 +24,7 @@ loom {
 		}
 	}
 
+	accessWidenerPath = file("src/main/resources/bigitemdisplay.classtweaker")
 }
 
 dependencies {

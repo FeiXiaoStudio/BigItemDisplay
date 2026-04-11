@@ -1,0 +1,4 @@
+classTweaker v1 named
+extendable method net/minecraft/entity/decoration/ItemFrameEntity setRotation (IZ)V
+accessible field net/minecraft/entity/decoration/ItemFrameEntity ROTATION Lnet/minecraft/entity/data/TrackedData;
+accessible field net/minecraft/entity/decoration/ItemFrameEntity fixed Z
