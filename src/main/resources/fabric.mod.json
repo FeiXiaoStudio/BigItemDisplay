@@ -5,13 +5,13 @@
 	"name": "BigItemDisplay",
 	"description": "Add a 2×2 item display",
 	"authors": [
-		"HrCaoc"
+		"FeiXiaoStudio"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/FeiXiaoStudio",
+		"sources": "https://github.com/FeiXiaoStudio/BigItemDisplay"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/bigitemdisplay/icon.png",
 	"environment": "*",
 	"entrypoints": {
@@ -20,18 +20,8 @@
 		],
 		"client": [
 			"hrcaoc.bigitemdisplay.BigItemDisplayClient"
-		],
-		"fabric-datagen": [
-			"hrcaoc.bigitemdisplay.BigItemDisplayDataGenerator"
 		]
 	},
-	"mixins": [
-		"bigitemdisplay.mixins.json",
-		{
-			"config": "bigitemdisplay.client.mixins.json",
-			"environment": "client"
-		}
-	],
 	"depends": {
 		"fabricloader": ">=0.16.9",
 		"minecraft": "~1.20.1",
