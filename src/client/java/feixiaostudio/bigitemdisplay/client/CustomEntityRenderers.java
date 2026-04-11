@@ -1,5 +1,6 @@
-package hrcaoc.bigitemdisplay;
+package feixiaostudio.bigitemdisplay.client;
 
+import feixiaostudio.bigitemdisplay.CustomEntityType;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;

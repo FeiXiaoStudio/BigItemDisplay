@@ -1,5 +1,7 @@
-package hrcaoc.bigitemdisplay;
+package feixiaostudio.bigitemdisplay.client;
 
+import feixiaostudio.bigitemdisplay.BigItemDisplay;
+import feixiaostudio.bigitemdisplay.BigItemDisplayEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;

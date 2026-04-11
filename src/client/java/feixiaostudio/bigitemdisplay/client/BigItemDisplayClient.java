@@ -1,4 +1,4 @@
-package hrcaoc.bigitemdisplay;
+package feixiaostudio.bigitemdisplay.client;
 
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.fabricmc.api.ClientModInitializer;

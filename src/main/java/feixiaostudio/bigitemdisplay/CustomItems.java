@@ -1,4 +1,4 @@
-package hrcaoc.bigitemdisplay;
+package feixiaostudio.bigitemdisplay;
 
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.item.Item;

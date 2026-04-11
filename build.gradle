@@ -1,14 +1,10 @@
 plugins {
-	id 'fabric-loom' version '1.9-SNAPSHOT'
+	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
 }
 
 version = project.mod_version
 group = project.maven_group
-
-base {
-	archivesName = project.archives_base_name
-}
 
 repositories {
 	// Add repositories to retrieve artifacts from in here.
@@ -16,10 +12,6 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
-	/*maven { // LambDynamicLights
-		name = "Gegy"
-		url = uri("https://maven.gegy.dev/releases/")
-	}*/
 }
 
 loom {
@@ -34,12 +26,6 @@ loom {
 
 }
 
-fabricApi {
-	configureDataGeneration {
-		client = true
-	}
-}
-
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -47,24 +33,20 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-	// modCompileOnly("dev.lambdaurora.lambdynamiclights:lambdynamiclights-api:2.3.2+1.20.1") // API only available above 1.21.1
-	// modLocalRuntime("dev.lambdaurora.lambdynamiclights:lambdynamiclights-runtime:2.3.2+1.20.1") // Same as above
-	// modCompileOnly("dev.lambdaurora:lambdynamiclights:2.3.1+1.20.1") // Still fails wtf
-	// modLocalRuntime("dev.lambdaurora:lambdynamiclights:2.3.2+1.20.1-local") // Same as above
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+	
 }
 
 processResources {
 	inputs.property "version", project.version
 
 	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+		expand "version": inputs.properties.version
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
+	it.options.release = 21
 }
 
 java {
@@ -73,13 +55,15 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
+	inputs.property "projectName", project.name
+
 	from("LICENSE") {
-		rename { "${it}_${project.base.archivesName.get()}"}
+		rename { "${it}_${project.name}"}
 	}
 }
 
@@ -87,7 +71,6 @@ jar {
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
 			from components.java
 		}
 	}

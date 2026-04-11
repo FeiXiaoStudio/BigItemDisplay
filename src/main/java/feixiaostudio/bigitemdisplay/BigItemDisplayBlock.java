@@ -1,4 +1,4 @@
-package hrcaoc.bigitemdisplay;
+package feixiaostudio.bigitemdisplay;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;

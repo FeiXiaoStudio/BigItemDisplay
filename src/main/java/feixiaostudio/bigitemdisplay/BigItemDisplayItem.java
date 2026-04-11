@@ -1,4 +1,4 @@
-package hrcaoc.bigitemdisplay;
+package feixiaostudio.bigitemdisplay;
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.decoration.AbstractDecorationEntity;

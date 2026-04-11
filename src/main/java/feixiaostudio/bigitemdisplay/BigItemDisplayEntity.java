@@ -1,4 +1,4 @@
-package hrcaoc.bigitemdisplay;
+package feixiaostudio.bigitemdisplay;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.block.AbstractRedstoneGateBlock;
@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 public class BigItemDisplayEntity extends ItemFrameEntity {
-    private static final Logger BIG_ITEM_DISPLAY_LOGGER = LogUtils.getLogger();
     private static final TrackedData<ItemStack> ITEM_STACK = DataTracker.registerData(BigItemDisplayEntity.class, TrackedDataHandlerRegistry.ITEM_STACK);
     private static final TrackedData<Integer> ROTATION = DataTracker.registerData(BigItemDisplayEntity.class, TrackedDataHandlerRegistry.INTEGER);
     public static final int ROTATION_CHOICES = 24;
@@ -45,7 +44,6 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         this.setFacing(facing);
     }
 
-    @Override
     protected void initDataTracker() {
         this.getDataTracker().startTracking(ITEM_STACK, ItemStack.EMPTY);
         this.getDataTracker().startTracking(ROTATION, 0);
@@ -466,7 +464,7 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         // Copied from AbstractDecorationEntity.readCustomDataFromNbt(NbtCompound nbt)
         BlockPos blockPos = new BlockPos(nbt.getInt("TileX"), nbt.getInt("TileY"), nbt.getInt("TileZ"));
         if (!blockPos.isWithinDistance(this.getBlockPos(), 16.0)) {
-            BIG_ITEM_DISPLAY_LOGGER.error("Hanging entity at invalid position: {}", blockPos);
+            BigItemDisplay.LOGGER.error("Hanging entity at invalid position: {}", blockPos);
         } else {
             this.attachmentPos = blockPos;
         }
@@ -475,7 +473,7 @@ public class BigItemDisplayEntity extends ItemFrameEntity {
         if (nbtCompound != null && !nbtCompound.isEmpty()) {
             ItemStack itemStack = ItemStack.fromNbt(nbtCompound);
             if (itemStack.isEmpty()) {
-                BIG_ITEM_DISPLAY_LOGGER.warn("Unable to load item from: {}", nbtCompound);
+                BigItemDisplay.LOGGER.warn("Unable to load item from: {}", nbtCompound);
             }
 
             ItemStack itemStack2 = this.getHeldItemStack();
