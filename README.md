@@ -1,9 +1,13 @@
 # BigItemDisplay
 
-## Setup
+Adds a 2x2 item frame to the world.
 
-For setup instructions, please see the [Fabric Documentation page](https://docs.fabricmc.net/develop/getting-started/creating-a-project#setting-up) related to the IDE that you are using.
+Needs to be installed on both server and client sides.
 
-## License
+## Commands
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+`/bigitemdisplay show [true|false]`: Toggles rendering the big item frame or not. Pure client-side.
+
+You can also manually set `Invisible:1b` in the nbt of the big item frame via vanilla commands.
+
+`/bigitemdisplay glow [true|false]`: Toggles the glowing status of the big item frame. Also pure client-side.
