@@ -1,9 +1,9 @@
-# BigItemDisplay
+# BigItemDisplay-private
 
-## Setup
+Minecraft gameplay source variants. Each version directory is an independent Gradle project. Build with its supplied Gradle wrapper and the Java version required by that variant.
 
-For setup instructions, please see the [Fabric Documentation page](https://docs.fabricmc.net/develop/getting-started/creating-a-project#setting-up) related to the IDE that you are using.
+Only source, resources, project build scripts and Gradle wrapper tooling are imported. Generated caches, build outputs, run data, IDE files, bundled project ZIPs and nested Git stores are excluded.
 
-## License
+FeiXiaoStudio-authored contributions: All Rights Reserved. Original third-party materials retain their terms and credits. See each variant's THIRD_PARTY_NOTICES.md and THIRD_PARTY_LICENSES/.
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+See [SOURCE_MAP.md](SOURCE_MAP.md) for version provenance.
