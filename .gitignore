@@ -41,3 +41,19 @@ replay_*.log
 
 big_item_display_*.png
 *.psd
+
+# Local/generated files excluded from source imports
+.gradle/
+.idea/
+.vscode/
+build/
+run/
+runs/
+out/
+bin/
+logs/
+crash-reports/
+*.zip
+*.hprof
+.env
+.env.*
