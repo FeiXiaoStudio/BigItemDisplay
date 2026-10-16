@@ -38,3 +38,19 @@ hs_err_*.log
 replay_*.log
 *.hprof
 *.jfr
+
+# Local/generated files excluded from source imports
+.gradle/
+.idea/
+.vscode/
+build/
+run/
+runs/
+out/
+bin/
+logs/
+crash-reports/
+*.zip
+*.hprof
+.env
+.env.*

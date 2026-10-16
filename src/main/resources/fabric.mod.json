@@ -1,34 +1,34 @@
 {
-	"schemaVersion": 1,
-	"id": "bigitemdisplay",
-	"version": "${version}",
-	"name": "BigItemDisplay",
-	"description": "Add a 2×2 item display",
-	"authors": [
-		"FeiXiaoStudio"
-	],
-	"contact": {
-		"homepage": "https://github.com/FeiXiaoStudio",
-		"sources": "https://github.com/FeiXiaoStudio/BigItemDisplay"
-	},
-	"license": "MIT",
-	"icon": "assets/bigitemdisplay/icon.png",
-	"environment": "*",
-	"entrypoints": {
-		"main": [
-			"hrcaoc.bigitemdisplay.BigItemDisplay"
-		],
-		"client": [
-			"hrcaoc.bigitemdisplay.BigItemDisplayClient"
-		]
-	},
-	"depends": {
-		"fabricloader": ">=0.16.9",
-		"minecraft": "~1.20.1",
-		"java": ">=17",
-		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
-	}
+  "schemaVersion": 1,
+  "id": "bigitemdisplay",
+  "version": "${version}",
+  "name": "BigItemDisplay",
+  "description": "Add a 2×2 item display",
+  "authors": [
+    "FeiXiaoStudio"
+  ],
+  "contact": {
+    "homepage": "https://github.com/FeiXiaoStudio",
+    "sources": "https://github.com/FeiXiaoStudio/BigItemDisplay-private"
+  },
+  "license": "All Rights Reserved",
+  "icon": "assets/bigitemdisplay/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "hrcaoc.bigitemdisplay.BigItemDisplay"
+    ],
+    "client": [
+      "hrcaoc.bigitemdisplay.BigItemDisplayClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.9",
+    "minecraft": "~1.20.1",
+    "java": ">=17",
+    "fabric-api": "*"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
 }
